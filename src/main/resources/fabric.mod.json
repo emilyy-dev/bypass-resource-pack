@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "bypass-resource-pack",
+  "version": "${version}",
+
+  "name": "Bypass Resource Pack",
+  "description": "Fabric mod to reject and bypass forced resource packs",
+  "contact": {
+    "sources": "https://github.com/emilyy-dev/bypass-resource-pack",
+    "issues": "https://github.com/emilyy-dev/bypass-resource-pack/issues"
+  },
+  "authors": [
+    {
+      "name": "emilyy-dev",
+      "contact": {
+        "homepage": "https://github.com/emilyy-dev"
+      }
+    }
+  ],
+
+  "license": "LGPL-3.0-or-later",
+
+  "environment": "client",
+  "mixins": [
+    "bypass-resource-pack.mixins.json"
+  ],
+  "depends": {
+    "minecraft": "1.18.1"
+  }
+}
