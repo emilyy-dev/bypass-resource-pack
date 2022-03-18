@@ -1,7 +1,7 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "io.github.emilyy_dev.bypass_resource_pack.mixin",
+  "package": "io.github.emilyydev.bypass_resource_pack.mixin",
   "compatibilityLevel": "JAVA_17",
   "client": [
     "ClientPacketListenerMixin",

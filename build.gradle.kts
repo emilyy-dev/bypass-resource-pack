@@ -1,5 +1,5 @@
 plugins {
-    id("fabric-loom") version "0.10-SNAPSHOT"
+    id("fabric-loom") version "0.11-SNAPSHOT"
     id("com.github.hierynomus.license-base") version "0.16.1"
 }
 
@@ -27,10 +27,6 @@ tasks {
         finalizedBy(licenseMain)
     }
 
-    withType<Wrapper> {
-        gradleVersion = "7.3.3"
-    }
-
     withType<JavaCompile> {
         options.encoding = Charsets.UTF_8.name()
         options.release.set(17)
@@ -48,12 +44,15 @@ tasks {
     withType<Jar> {
         inputs.property("project.group", project.group)
         inputs.property("project.name", project.name)
+        inputs.file("COPYING")
+        inputs.file("COPYING.LESSER")
 
         manifestContentCharset = Charsets.UTF_8.name()
         manifest.attributes["Automatic-Module-Name"] = "${project.group}.${project.name}".replace("-", "_")
         metaInf {
-            from("LICENSE.txt") {
-                into("${project.group}/${project.name}")
+            into("${project.group}/${project.name}") {
+                from("COPYING")
+                from("COPYING.LESSER")
             }
         }
     }
