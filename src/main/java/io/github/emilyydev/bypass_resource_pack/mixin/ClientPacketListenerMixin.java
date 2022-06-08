@@ -48,7 +48,7 @@ public abstract class ClientPacketListenerMixin {
 
   @ModifyArg(
       // lambda in 'this.minecraft.execute(() -> ', synthetic method
-      method = "method_34013(Ljava/lang/String;Ljava/lang/String;ZLnet/minecraft/network/protocol/game/ClientboundResourcePackPacket;)V",
+      method = "method_34013(Ljava/net/URL;Ljava/lang/String;ZLnet/minecraft/network/protocol/game/ClientboundResourcePackPacket;)V",
       at = @At(
           value = "INVOKE",
           target = "Lnet/minecraft/client/Minecraft;setScreen(Lnet/minecraft/client/gui/screens/Screen;)V"
