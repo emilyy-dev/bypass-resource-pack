@@ -19,11 +19,10 @@
 package io.github.emilyydev.bypass_resource_pack;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 
 public interface BypassableConfirmScreen {
 
-  Component BYPASS_TEXT = new TextComponent("Bypass");
+  Component BYPASS_TEXT = Component.literal("Bypass");
 
   void bypassResourcePack$setBypassAction(Runnable bypass);
 }
