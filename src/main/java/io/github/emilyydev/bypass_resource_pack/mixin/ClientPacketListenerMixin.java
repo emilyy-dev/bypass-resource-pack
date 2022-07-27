@@ -37,18 +37,29 @@ import java.util.concurrent.TimeUnit;
 @Mixin(ClientPacketListener.class)
 public abstract class ClientPacketListenerMixin {
 
-  // some cheeky sneaky servers will check the time between Action.ACCEPTED -> Action.SUCCESSFULLY_LOADED
-  // to ensure the client "actually loaded" the resource pack
-  private static @Unique final Executor DELAYED_EXECUTOR = CompletableFuture.delayedExecutor(5L, TimeUnit.SECONDS);
+  @Unique private static final long SPOOFED_ACCEPT_DELAY_SECONDS =
+      Long.parseLong(
+          System.getProperty(
+              "bypassResourcePack.spoofedAcceptDelaySeconds",
+              System.getenv().getOrDefault("BYPASS_RESOURCE_PACK_SPOOFED_ACCEPT_DELAY_SECONDS", "5")
+          )
+      );
 
-  @Shadow private @Final Minecraft minecraft;
+  // Some cheeky sneaky servers will check the time between Action.ACCEPTED -> Action.SUCCESSFULLY_LOADED
+  //  to ensure the client "actually loaded" the resource pack
+  @Unique private static final Executor DELAYED_EXECUTOR =
+      SPOOFED_ACCEPT_DELAY_SECONDS > 0L ?
+          CompletableFuture.delayedExecutor(SPOOFED_ACCEPT_DELAY_SECONDS, TimeUnit.SECONDS) :
+          Runnable::run;
+
+  @Shadow @Final private Minecraft minecraft;
 
   @Shadow protected abstract void downloadCallback(CompletableFuture<?> downloadFuture);
   @Shadow protected abstract void send(ServerboundResourcePackPacket.Action packStatus);
 
   @ModifyArg(
       // lambda in 'this.minecraft.execute(() -> ', synthetic method
-      method = "method_34013(Ljava/net/URL;Ljava/lang/String;ZLnet/minecraft/network/protocol/game/ClientboundResourcePackPacket;)V",
+      method = "method_34013",
       at = @At(
           value = "INVOKE",
           target = "Lnet/minecraft/client/Minecraft;setScreen(Lnet/minecraft/client/gui/screens/Screen;)V"

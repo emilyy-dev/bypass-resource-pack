@@ -33,21 +33,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ConfirmScreen.class)
 public abstract class ConfirmScreenMixin extends Screen implements BypassableConfirmScreen {
 
-  private @Unique Runnable bypassAction = null;
+  @Unique private Runnable bypassAction = null;
 
   protected ConfirmScreenMixin(final Component title) {
     super(title);
   }
 
-  @Shadow protected abstract void addExitButton(final Button button);
+  @Shadow protected abstract void addExitButton(Button button);
 
   @Inject(
-      method = "addButtons(I)V",
+      method = "addButtons",
       at = @At("TAIL")
   )
   protected void addBypassButton(final int y, final CallbackInfo ci) {
     if (this.bypassAction != null) {
-      addExitButton(new Button(this.width / 2 - 75, y + 20 + 5, 150, 20, BYPASS_TEXT, button -> this.bypassAction.run()));
+      addExitButton(new Button(this.width / 2 - 75, y + 20 + 5, 150, 20, BYPASS_TEXT, $ -> this.bypassAction.run()));
     }
   }
 
