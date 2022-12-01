@@ -53,12 +53,10 @@ public abstract class ClientPacketListenerMixin {
   //  to ensure the client "actually loaded" the resource pack
   @Unique private static final Executor DELAYED_EXECUTOR =
       SPOOFED_ACCEPT_DELAY_SECONDS > 0L ?
-              CompletableFuture.delayedExecutor(SPOOFED_ACCEPT_DELAY_SECONDS, TimeUnit.SECONDS) :
-              Runnable::run;
+          CompletableFuture.delayedExecutor(SPOOFED_ACCEPT_DELAY_SECONDS, TimeUnit.SECONDS) :
+          Runnable::run;
 
-  @Shadow
-  @Final
-  private Minecraft minecraft;
+  @Shadow @Final private Minecraft minecraft;
 
   @Shadow protected abstract void downloadCallback(CompletableFuture<?> downloadFuture);
 
