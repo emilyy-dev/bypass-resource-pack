@@ -68,8 +68,8 @@ public abstract class ClientPacketListenerMixin {
       // lambda in 'this.minecraft.execute(() -> ', synthetic method
       method = "method_34013",
       at = @At(
-              value = "INVOKE",
-              target = "Lnet/minecraft/client/Minecraft;setScreen(Lnet/minecraft/client/gui/screens/Screen;)V"
+          value = "INVOKE",
+          target = "Lnet/minecraft/client/Minecraft;setScreen(Lnet/minecraft/client/gui/screens/Screen;)V"
       ), index = 0
   )
   private Screen setScreenBypassAction(final Screen screen) {
