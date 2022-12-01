@@ -29,25 +29,25 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(ServerData.class)
 public abstract class ServerDataMixin {
 
-    @Shadow private ServerData.ServerPackStatus packStatus;
+  @Shadow private ServerData.ServerPackStatus packStatus;
 
-    @Inject(
-            method = "write",
-            at = @At("TAIL")
-    )
-    protected void addToWrite(final CallbackInfoReturnable<CompoundTag> cir) {
-        if (!"BYPASS".equals(this.packStatus.name())) return;
-        cir.getReturnValue().putBoolean("bypassTextures", true);
-    }
+  @Inject(
+      method = "write",
+      at = @At("TAIL")
+  )
+  protected void addToWrite(final CallbackInfoReturnable<CompoundTag> cir) {
+    if (!"BYPASS".equals(this.packStatus.name())) return;
+    cir.getReturnValue().putBoolean("bypassTextures", true);
+  }
 
-    @Inject(
-            method = "read",
-            at = @At("TAIL")
-    )
-    private static void addToRead(final CompoundTag compoundTag, final CallbackInfoReturnable<ServerData> cir) {
-        if (!compoundTag.contains("bypassTextures")) return;
-        if (!compoundTag.getBoolean("bypassTextures")) return;
+  @Inject(
+      method = "read",
+      at = @At("TAIL")
+  )
+  private static void addToRead(final CompoundTag compoundTag, final CallbackInfoReturnable<ServerData> cir) {
+    if (!compoundTag.contains("bypassTextures")) return;
+    if (!compoundTag.getBoolean("bypassTextures")) return;
 
-        cir.getReturnValue().setResourcePackStatus(ServerData.ServerPackStatus.valueOf("BYPASS"));
-    }
+    cir.getReturnValue().setResourcePackStatus(ServerData.ServerPackStatus.valueOf("BYPASS"));
+  }
 }

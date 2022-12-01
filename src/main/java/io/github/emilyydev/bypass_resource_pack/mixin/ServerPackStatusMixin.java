@@ -40,35 +40,35 @@ import static io.github.emilyydev.bypass_resource_pack.BypassableConfirmScreen.B
 @Unique
 public abstract class ServerPackStatusMixin {
 
-    @Shadow
-    @Final
-    @Mutable
-    private static ServerData.ServerPackStatus[] $VALUES;
+  @Shadow
+  @Final
+  @Mutable
+  private static ServerData.ServerPackStatus[] $VALUES;
 
-    // The new enum constant for the server pack status
-    private static final ServerData.ServerPackStatus BYPASS = serverPackStatus$addVariant("BYPASS", "bypass");
+  // The new enum constant for the server pack status
+  private static final ServerData.ServerPackStatus BYPASS = serverPackStatus$addVariant("BYPASS", "bypass");
 
-    @Invoker("<init>")
-    public static ServerData.ServerPackStatus serverPackStatus$invokeInit(final String internalName, final int internalId, String name) {
-        throw new AssertionError();
-    }
+  @Invoker("<init>")
+  public static ServerData.ServerPackStatus serverPackStatus$invokeInit(final String internalName, final int internalId, String name) {
+    throw new AssertionError();
+  }
 
-    // Very hacky way to set the name without translation key on the resources.
-    @Inject(
-            method = "getName",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void addToGetName(final CallbackInfoReturnable<Component> cir) {
-        if ("BYPASS".equals(((ServerData.ServerPackStatus) (Object) this).name())) cir.setReturnValue(BYPASS_TEXT);
-    }
+  // Very hacky way to set the name without translation key on the resources.
+  @Inject(
+      method = "getName",
+      at = @At("HEAD"),
+      cancellable = true
+  )
+  private void addToGetName(final CallbackInfoReturnable<Component> cir) {
+    if ("BYPASS".equals(((ServerData.ServerPackStatus) (Object) this).name())) cir.setReturnValue(BYPASS_TEXT);
+  }
 
-    private static ServerData.ServerPackStatus serverPackStatus$addVariant(final String internalName, final String name) {
-        final List<ServerData.ServerPackStatus> variants = new ArrayList<>(Arrays.asList(ServerPackStatusMixin.$VALUES));
-        final ServerData.ServerPackStatus status = serverPackStatus$invokeInit(internalName, variants.get(variants.size() - 1).ordinal() + 1, name);
+  private static ServerData.ServerPackStatus serverPackStatus$addVariant(final String internalName, final String name) {
+    final List<ServerData.ServerPackStatus> variants = new ArrayList<>(Arrays.asList(ServerPackStatusMixin.$VALUES));
+    final ServerData.ServerPackStatus status = serverPackStatus$invokeInit(internalName, variants.get(variants.size() - 1).ordinal() + 1, name);
 
-        variants.add(status);
-        ServerPackStatusMixin.$VALUES = variants.toArray(new ServerData.ServerPackStatus[0]);
-        return status;
-    }
+    variants.add(status);
+    ServerPackStatusMixin.$VALUES = variants.toArray(new ServerData.ServerPackStatus[0]);
+    return status;
+  }
 }
