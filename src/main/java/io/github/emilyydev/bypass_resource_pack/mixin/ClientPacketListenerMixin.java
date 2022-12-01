@@ -49,8 +49,8 @@ public abstract class ClientPacketListenerMixin {
           )
       );
 
-    // Some cheeky sneaky servers will check the time between Action.ACCEPTED -> Action.SUCCESSFULLY_LOADED
-    //  to ensure the client "actually loaded" the resource pack
+  // Some cheeky sneaky servers will check the time between Action.ACCEPTED -> Action.SUCCESSFULLY_LOADED
+  //  to ensure the client "actually loaded" the resource pack
   @Unique private static final Executor DELAYED_EXECUTOR =
       SPOOFED_ACCEPT_DELAY_SECONDS > 0L ?
               CompletableFuture.delayedExecutor(SPOOFED_ACCEPT_DELAY_SECONDS, TimeUnit.SECONDS) :
