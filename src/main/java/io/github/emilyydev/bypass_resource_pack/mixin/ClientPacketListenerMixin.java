@@ -81,9 +81,8 @@ public abstract class ClientPacketListenerMixin {
   @Inject(
       method = "handleResourcePack",
       at = @At(
-          value = "INVOKE",
-          target = "Lnet/minecraft/client/Minecraft;getCurrentServer()Lnet/minecraft/client/multiplayer/ServerData;",
-          shift = At.Shift.AFTER
+          value = "INVOKE_ASSIGN",
+          target = "Lnet/minecraft/client/Minecraft;getCurrentServer()Lnet/minecraft/client/multiplayer/ServerData;"
       ),
       cancellable = true
   )

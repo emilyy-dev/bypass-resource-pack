@@ -20,6 +20,8 @@ package io.github.emilyydev.bypass_resource_pack.mixin;
 
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.TagType;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -45,7 +47,7 @@ public abstract class ServerDataMixin {
       at = @At("TAIL")
   )
   private static void addToRead(final CompoundTag compoundTag, final CallbackInfoReturnable<ServerData> cir) {
-    if (!compoundTag.contains("bypassTextures")) return;
+    if (!compoundTag.contains("bypassTextures", Tag.TAG_BYTE)) return;
     if (!compoundTag.getBoolean("bypassTextures")) return;
 
     cir.getReturnValue().setResourcePackStatus(ServerData.ServerPackStatus.valueOf("BYPASS"));

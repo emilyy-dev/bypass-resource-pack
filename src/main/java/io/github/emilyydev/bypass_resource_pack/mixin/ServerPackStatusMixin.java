@@ -37,16 +37,12 @@ import java.util.List;
 import static io.github.emilyydev.bypass_resource_pack.BypassableConfirmScreen.BYPASS_TEXT;
 
 @Mixin(ServerData.ServerPackStatus.class)
-@Unique
 public abstract class ServerPackStatusMixin {
 
-  @Shadow
-  @Final
-  @Mutable
-  private static ServerData.ServerPackStatus[] $VALUES;
+  @Shadow @Final @Mutable private static ServerData.ServerPackStatus[] $VALUES;
 
   // The new enum constant for the server pack status
-  private static final ServerData.ServerPackStatus BYPASS = serverPackStatus$addVariant("BYPASS", "bypass");
+  private static final ServerData.ServerPackStatus BYPASS = addVariant("BYPASS", "bypass");
 
   @Invoker("<init>")
   public static ServerData.ServerPackStatus serverPackStatus$invokeInit(final String internalName, final int internalId, String name) {
@@ -60,11 +56,12 @@ public abstract class ServerPackStatusMixin {
       cancellable = true
   )
   private void addToGetName(final CallbackInfoReturnable<Component> cir) {
-    if ("BYPASS".equals(((ServerData.ServerPackStatus) (Object) this).name())) cir.setReturnValue(BYPASS_TEXT);
+    if (BYPASS == (Object) this) cir.setReturnValue(BYPASS_TEXT);
   }
 
-  private static ServerData.ServerPackStatus serverPackStatus$addVariant(final String internalName, final String name) {
-    final List<ServerData.ServerPackStatus> variants = new ArrayList<>(Arrays.asList(ServerPackStatusMixin.$VALUES));
+  @Unique
+  private static ServerData.ServerPackStatus addVariant(final String internalName, final String name) {
+    final List<ServerData.ServerPackStatus> variants = Arrays.asList(ServerPackStatusMixin.$VALUES);
     final ServerData.ServerPackStatus status = serverPackStatus$invokeInit(internalName, variants.get(variants.size() - 1).ordinal() + 1, name);
 
     variants.add(status);
