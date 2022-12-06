@@ -22,13 +22,17 @@ import io.github.emilyydev.bypass_resource_pack.BypassableConfirmScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.network.protocol.game.ClientboundResourcePackPacket;
 import net.minecraft.network.protocol.game.ServerboundResourcePackPacket;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -55,6 +59,7 @@ public abstract class ClientPacketListenerMixin {
   @Shadow @Final private Minecraft minecraft;
 
   @Shadow protected abstract void downloadCallback(CompletableFuture<?> downloadFuture);
+
   @Shadow protected abstract void send(ServerboundResourcePackPacket.Action packStatus);
 
   @ModifyArg(
@@ -68,10 +73,29 @@ public abstract class ClientPacketListenerMixin {
   private Screen setScreenBypassAction(final Screen screen) {
     ((BypassableConfirmScreen) screen).bypassResourcePack$setBypassAction(() -> {
       this.minecraft.setScreen(null);
-      send(ServerboundResourcePackPacket.Action.ACCEPTED);
-      downloadCallback(CompletableFuture.runAsync(() -> { }, DELAYED_EXECUTOR));
+      bypassPack();
     });
-
     return screen;
+  }
+
+  @Inject(
+      method = "handleResourcePack",
+      at = @At(
+          value = "INVOKE_ASSIGN",
+          target = "Lnet/minecraft/client/Minecraft;getCurrentServer()Lnet/minecraft/client/multiplayer/ServerData;"
+      ),
+      cancellable = true
+  )
+  private void setBypassStatusAction(final ClientboundResourcePackPacket clientboundResourcePackPacket, final CallbackInfo ci) {
+      final ServerData serverData = minecraft.getCurrentServer();
+      if (serverData != null && serverData.getResourcePackStatus().name().equals("BYPASS")) {
+        bypassPack();
+        ci.cancel();
+      }
+  }
+
+  private void bypassPack() {
+    send(ServerboundResourcePackPacket.Action.ACCEPTED);
+    downloadCallback(CompletableFuture.runAsync(() -> {}, DELAYED_EXECUTOR));
   }
 }
