@@ -26,6 +26,7 @@ import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerList;
 import net.minecraft.network.protocol.game.ServerboundResourcePackPacket;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -58,6 +59,7 @@ public abstract class ClientPacketListenerMixin {
           Runnable::run;
 
   @Shadow @Final private Minecraft minecraft;
+  @Shadow @Final private ServerData serverData;
 
   @Shadow protected abstract void downloadCallback(CompletableFuture<?> downloadFuture);
   @Shadow protected abstract void send(ServerboundResourcePackPacket.Action packStatus);
@@ -74,10 +76,9 @@ public abstract class ClientPacketListenerMixin {
   private Screen setScreenBypassAction(final Screen screen) {
     ((BypassableConfirmScreen) screen).bypassResourcePack$setBypassAction(() -> {
       this.minecraft.setScreen(null);
-      final ServerData serverData = this.minecraft.getCurrentServer();
-      if (serverData != null) {
-        serverData.setResourcePackStatus(ModConstants.getBypassStatus());
-        ServerList.saveSingleServer(serverData);
+      if (this.serverData != null) {
+        this.serverData.setResourcePackStatus(ModConstants.getBypassStatus());
+        ServerList.saveSingleServer(this.serverData);
       }
 
       bypassPack();
@@ -89,14 +90,15 @@ public abstract class ClientPacketListenerMixin {
   @Inject(
       method = "handleResourcePack",
       at = @At(
-          value = "INVOKE_ASSIGN",
-          target = "Lnet/minecraft/client/Minecraft;getCurrentServer()Lnet/minecraft/client/multiplayer/ServerData;"
+          value = "FIELD",
+          opcode = Opcodes.GETFIELD,
+          target = "Lnet/minecraft/client/multiplayer/ClientPacketListener;serverData:Lnet/minecraft/client/multiplayer/ServerData;",
+          ordinal = 0
       ),
       cancellable = true
   )
   private void setBypassStatusAction(final CallbackInfo ci) {
-    final ServerData serverData = this.minecraft.getCurrentServer();
-    if (serverData != null && serverData.getResourcePackStatus() == ModConstants.getBypassStatus()) {
+    if (this.serverData != null && this.serverData.getResourcePackStatus() == ModConstants.getBypassStatus()) {
       bypassPack();
       ci.cancel();
     }
