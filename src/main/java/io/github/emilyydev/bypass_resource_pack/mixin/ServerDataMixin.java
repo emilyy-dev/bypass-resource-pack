@@ -18,10 +18,10 @@
 
 package io.github.emilyydev.bypass_resource_pack.mixin;
 
+import io.github.emilyydev.bypass_resource_pack.ModConstants;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.nbt.TagType;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -29,7 +29,17 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerData.class)
-public abstract class ServerDataMixin {
+public class ServerDataMixin {
+
+  @Inject(
+      method = "read",
+      at = @At("TAIL")
+  )
+  private static void addToRead(final CompoundTag compoundTag, final CallbackInfoReturnable<ServerData> cir) {
+    if (compoundTag.contains(ModConstants.TAG_NAME, Tag.TAG_BYTE) && compoundTag.getBoolean(ModConstants.TAG_NAME)) {
+      cir.getReturnValue().setResourcePackStatus(ModConstants.getBypassStatus());
+    }
+  }
 
   @Shadow private ServerData.ServerPackStatus packStatus;
 
@@ -38,18 +48,8 @@ public abstract class ServerDataMixin {
       at = @At("TAIL")
   )
   protected void addToWrite(final CallbackInfoReturnable<CompoundTag> cir) {
-    if (!"BYPASS".equals(this.packStatus.name())) return;
-    cir.getReturnValue().putBoolean("bypassTextures", true);
-  }
-
-  @Inject(
-      method = "read",
-      at = @At("TAIL")
-  )
-  private static void addToRead(final CompoundTag compoundTag, final CallbackInfoReturnable<ServerData> cir) {
-    if (!compoundTag.contains("bypassTextures", Tag.TAG_BYTE)) return;
-    if (!compoundTag.getBoolean("bypassTextures")) return;
-
-    cir.getReturnValue().setResourcePackStatus(ServerData.ServerPackStatus.valueOf("BYPASS"));
+    if (this.packStatus == ModConstants.getBypassStatus()) {
+      cir.getReturnValue().putBoolean(ModConstants.TAG_NAME, true);
+    }
   }
 }

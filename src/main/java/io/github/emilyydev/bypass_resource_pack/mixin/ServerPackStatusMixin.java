@@ -18,35 +18,43 @@
 
 package io.github.emilyydev.bypass_resource_pack.mixin;
 
+import io.github.emilyydev.bypass_resource_pack.ModConstants;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.network.chat.Component;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-
-import static io.github.emilyydev.bypass_resource_pack.BypassableConfirmScreen.BYPASS_TEXT;
 
 @Mixin(ServerData.ServerPackStatus.class)
-public abstract class ServerPackStatusMixin {
-
-  @Shadow @Final @Mutable private static ServerData.ServerPackStatus[] $VALUES;
+public class ServerPackStatusMixin {
 
   // The new enum constant for the server pack status
-  private static final ServerData.ServerPackStatus BYPASS = addVariant("BYPASS", "bypass");
+  private static ServerData.ServerPackStatus BYPASS;
 
   @Invoker("<init>")
-  public static ServerData.ServerPackStatus serverPackStatus$invokeInit(final String internalName, final int internalId, String name) {
+  public static ServerData.ServerPackStatus serverPackStatus$invokeInit(
+      final String enumName,
+      final int enumOrdinal,
+      final String name
+  ) {
     throw new AssertionError();
+  }
+
+  @Inject(
+      // $values() method that actually creates the underlying enum array
+      method = "method_36896",
+      at = @At("TAIL"),
+      cancellable = true
+  )
+  private static void addVariant(final CallbackInfoReturnable<ServerData.ServerPackStatus[]> cir) {
+    ServerData.ServerPackStatus[] values = cir.getReturnValue();
+    final int ordinal = values.length;
+    cir.setReturnValue(values = Arrays.copyOfRange(values, 0, ordinal + 1));
+    values[ordinal] = BYPASS = serverPackStatus$invokeInit(ModConstants.ENUM_NAME, ordinal, "bypass");
   }
 
   // Very hacky way to set the name without translation key on the resources.
@@ -56,16 +64,8 @@ public abstract class ServerPackStatusMixin {
       cancellable = true
   )
   private void addToGetName(final CallbackInfoReturnable<Component> cir) {
-    if (BYPASS == (Object) this) cir.setReturnValue(BYPASS_TEXT);
-  }
-
-  @Unique
-  private static ServerData.ServerPackStatus addVariant(final String internalName, final String name) {
-    final List<ServerData.ServerPackStatus> variants = Arrays.asList(ServerPackStatusMixin.$VALUES);
-    final ServerData.ServerPackStatus status = serverPackStatus$invokeInit(internalName, variants.get(variants.size() - 1).ordinal() + 1, name);
-
-    variants.add(status);
-    ServerPackStatusMixin.$VALUES = variants.toArray(new ServerData.ServerPackStatus[0]);
-    return status;
+    if (BYPASS == (Object) this) {
+      cir.setReturnValue(ModConstants.BYPASS_TEXT);
+    }
   }
 }

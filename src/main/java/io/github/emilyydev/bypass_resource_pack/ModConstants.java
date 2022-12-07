@@ -18,7 +18,16 @@
 
 package io.github.emilyydev.bypass_resource_pack;
 
-public interface BypassableConfirmScreen {
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.network.chat.Component;
 
-  void bypassResourcePack$setBypassAction(Runnable bypass);
+public interface ModConstants {
+
+  String TAG_NAME = "bypassTextures";
+  String ENUM_NAME = "BYPASS";
+  Component BYPASS_TEXT = Component.literal("Bypass");
+
+  static ServerData.ServerPackStatus getBypassStatus() {
+    return ServerData.ServerPackStatus.valueOf(ENUM_NAME);
+  }
 }

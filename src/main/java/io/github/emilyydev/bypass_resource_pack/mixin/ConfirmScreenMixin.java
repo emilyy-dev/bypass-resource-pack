@@ -19,6 +19,7 @@
 package io.github.emilyydev.bypass_resource_pack.mixin;
 
 import io.github.emilyydev.bypass_resource_pack.BypassableConfirmScreen;
+import io.github.emilyydev.bypass_resource_pack.ModConstants;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
@@ -47,7 +48,7 @@ public abstract class ConfirmScreenMixin extends Screen implements BypassableCon
   )
   protected void addBypassButton(final int y, final CallbackInfo ci) {
     if (this.bypassAction != null) {
-      addExitButton(new Button(this.width / 2 - 75, y + 20 + 5, 150, 20, BYPASS_TEXT, $ -> this.bypassAction.run()));
+      addExitButton(new Button(this.width / 2 - 75, y + 20 + 5, 150, 20, ModConstants.BYPASS_TEXT, $ -> this.bypassAction.run()));
     }
   }
 
