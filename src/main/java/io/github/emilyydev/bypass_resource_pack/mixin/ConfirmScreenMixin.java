@@ -48,7 +48,12 @@ public abstract class ConfirmScreenMixin extends Screen implements BypassableCon
   )
   protected void addBypassButton(final int y, final CallbackInfo ci) {
     if (this.bypassAction != null) {
-      addExitButton(new Button(this.width / 2 - 75, y + 20 + 5, 150, 20, ModConstants.BYPASS_TEXT, $ -> this.bypassAction.run()));
+      addExitButton(
+          Button.builder(ModConstants.BYPASS_TEXT, $ -> this.bypassAction.run())
+              .pos(this.width / 2 - 75, y + 20 + 5)
+              .size(150, 20)
+              .build()
+      );
     }
   }
 
