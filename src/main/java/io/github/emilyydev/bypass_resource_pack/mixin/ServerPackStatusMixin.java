@@ -1,6 +1,6 @@
 //
 // Bypass Resource Pack - Fabric mod to reject and bypass forced resource packs
-// Copyright (C) 2022  emilyy-dev
+// Copyright (C) 2023  emilyy-dev
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
@@ -45,8 +45,7 @@ public class ServerPackStatusMixin {
   }
 
   @Inject(
-      // $values() method that actually creates the underlying enum array
-      method = "method_36896",
+      method = "$values",
       at = @At("TAIL"),
       cancellable = true
   )
