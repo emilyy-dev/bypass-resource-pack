@@ -22,10 +22,10 @@ import io.github.emilyydev.bypass_resource_pack.BypassableConfirmScreen;
 import io.github.emilyydev.bypass_resource_pack.ModConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerList;
-import net.minecraft.network.protocol.game.ServerboundResourcePackPacket;
+import net.minecraft.network.protocol.common.ServerboundResourcePackPacket;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -40,9 +40,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
-@Mixin(ClientPacketListener.class)
-public abstract class ClientPacketListenerMixin {
+@Mixin(ClientCommonPacketListenerImpl.class)
+public abstract class ClientCommonPacketListenerImplMixin {
 
+  // TODO: make proper config
   @Unique private static final long SPOOFED_ACCEPT_DELAY_SECONDS =
       Long.parseLong(
           System.getProperty(
@@ -58,15 +59,14 @@ public abstract class ClientPacketListenerMixin {
           CompletableFuture.delayedExecutor(SPOOFED_ACCEPT_DELAY_SECONDS, TimeUnit.SECONDS) :
           Runnable::run;
 
-  @Shadow @Final private Minecraft minecraft;
-  @Shadow @Final private ServerData serverData;
+  @Shadow @Final protected Minecraft minecraft;
+  @Shadow @Final protected ServerData serverData;
 
-  @Shadow protected abstract void downloadCallback(CompletableFuture<?> downloadFuture);
+  @Shadow protected abstract void packApplicationCallback(CompletableFuture<?> downloadFuture);
   @Shadow protected abstract void send(ServerboundResourcePackPacket.Action packStatus);
 
   @ModifyArg(
-      // lambda in 'this.minecraft.execute(() -> ', synthetic method
-      method = "method_34013",
+      method = "showServerPackPrompt",
       at = @At(
           value = "INVOKE",
           target = "Lnet/minecraft/client/Minecraft;setScreen(Lnet/minecraft/client/gui/screens/Screen;)V"
@@ -92,7 +92,7 @@ public abstract class ClientPacketListenerMixin {
       at = @At(
           value = "FIELD",
           opcode = Opcodes.GETFIELD,
-          target = "Lnet/minecraft/client/multiplayer/ClientPacketListener;serverData:Lnet/minecraft/client/multiplayer/ServerData;",
+          target = "Lnet/minecraft/client/multiplayer/ClientCommonPacketListenerImpl;serverData:Lnet/minecraft/client/multiplayer/ServerData;",
           ordinal = 0
       ),
       cancellable = true
@@ -107,6 +107,6 @@ public abstract class ClientPacketListenerMixin {
   @Unique
   private void bypassPack() {
     send(ServerboundResourcePackPacket.Action.ACCEPTED);
-    downloadCallback(CompletableFuture.runAsync(() -> { }, DELAYED_EXECUTOR));
+    packApplicationCallback(CompletableFuture.runAsync(() -> { }, DELAYED_EXECUTOR));
   }
 }

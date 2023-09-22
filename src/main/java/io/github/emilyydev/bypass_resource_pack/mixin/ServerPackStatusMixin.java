@@ -22,6 +22,7 @@ import io.github.emilyydev.bypass_resource_pack.ModConstants;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -33,7 +34,7 @@ import java.util.Arrays;
 public class ServerPackStatusMixin {
 
   // The new enum constant for the server pack status
-  private static ServerData.ServerPackStatus BYPASS;
+  @Unique private static ServerData.ServerPackStatus BYPASS;
 
   @Invoker("<init>")
   public static ServerData.ServerPackStatus serverPackStatus$invokeInit(

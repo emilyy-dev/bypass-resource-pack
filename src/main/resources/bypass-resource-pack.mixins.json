@@ -4,7 +4,7 @@
   "package": "io.github.emilyydev.bypass_resource_pack.mixin",
   "compatibilityLevel": "JAVA_17",
   "client": [
-    "ClientPacketListenerMixin",
+    "ClientCommonPacketListenerImplMixin",
     "ConfirmScreenMixin",
     "ServerDataMixin",
     "ServerPackStatusMixin"
