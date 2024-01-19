@@ -1,7 +1,7 @@
 import net.fabricmc.loom.task.RemapJarTask
 
 plugins {
-  id("fabric-loom") version "1.3-SNAPSHOT"
+  id("fabric-loom") version "1.4-SNAPSHOT"
   id("com.github.hierynomus.license-base") version "0.16.1"
 }
 
@@ -22,7 +22,7 @@ dependencies {
 
 license {
   header = file("header.txt")
-  encoding = Charsets.UTF_8.name()
+  encoding = "UTF-8"
   mapping("java", "DOUBLESLASH_STYLE")
   include("**/*.java")
 }
@@ -33,14 +33,14 @@ tasks {
   }
 
   withType<JavaCompile> {
-    options.encoding = Charsets.UTF_8.name()
+    options.encoding = "UTF-8"
     options.release.set(17)
   }
 
   withType<ProcessResources> {
     inputs.property("project.version", project.version)
 
-    filteringCharset = Charsets.UTF_8.name()
+    filteringCharset = "UTF-8"
     filesMatching("fabric.mod.json") {
       expand("version" to project.version)
     }
@@ -56,7 +56,7 @@ tasks {
     inputs.file("COPYING")
     inputs.file("COPYING.LESSER")
 
-    manifestContentCharset = Charsets.UTF_8.name()
+    manifestContentCharset = "UTF-8"
     metaInf {
       into("${project.group}/${project.name}") {
         from("COPYING")

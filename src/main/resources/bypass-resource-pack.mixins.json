@@ -6,6 +6,9 @@
   "client": [
     "ClientCommonPacketListenerImplMixin",
     "ConfirmScreenMixin",
+    "PackConfirmScreenMixin",
+    "PendingRequestMixin",
+    "ServerConnectorMixin",
     "ServerDataMixin",
     "ServerPackStatusMixin"
   ],

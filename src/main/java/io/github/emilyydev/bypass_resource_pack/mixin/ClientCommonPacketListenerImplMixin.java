@@ -18,6 +18,7 @@
 
 package io.github.emilyydev.bypass_resource_pack.mixin;
 
+import com.google.common.collect.Iterables;
 import io.github.emilyydev.bypass_resource_pack.BypassableConfirmScreen;
 import io.github.emilyydev.bypass_resource_pack.ModConstants;
 import net.minecraft.client.Minecraft;
@@ -25,6 +26,8 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerList;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket;
 import net.minecraft.network.protocol.common.ServerboundResourcePackPacket;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
@@ -36,6 +39,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -61,12 +65,10 @@ public abstract class ClientCommonPacketListenerImplMixin {
 
   @Shadow @Final protected Minecraft minecraft;
   @Shadow @Final protected ServerData serverData;
-
-  @Shadow protected abstract void packApplicationCallback(CompletableFuture<?> downloadFuture);
-  @Shadow protected abstract void send(ServerboundResourcePackPacket.Action packStatus);
+  @Shadow @Final protected Connection connection;
 
   @ModifyArg(
-      method = "showServerPackPrompt",
+      method = "handleResourcePackPush",
       at = @At(
           value = "INVOKE",
           target = "Lnet/minecraft/client/Minecraft;setScreen(Lnet/minecraft/client/gui/screens/Screen;)V"
@@ -74,21 +76,23 @@ public abstract class ClientCommonPacketListenerImplMixin {
       index = 0
   )
   private Screen setScreenBypassAction(final Screen screen) {
+    final UUID packId = Iterables.getLast(((PackConfirmScreenMixin) screen).getRequests()).callId();
     ((BypassableConfirmScreen) screen).bypassResourcePack$setBypassAction(() -> {
       this.minecraft.setScreen(null);
       if (this.serverData != null) {
         this.serverData.setResourcePackStatus(ModConstants.getBypassStatus());
+        this.minecraft.getDownloadedPackSource().allowServerPacks();
         ServerList.saveSingleServer(this.serverData);
       }
 
-      bypassPack();
+      bypassPack(packId);
     });
 
     return screen;
   }
 
   @Inject(
-      method = "handleResourcePack",
+      method = "handleResourcePackPush",
       at = @At(
           value = "FIELD",
           opcode = Opcodes.GETFIELD,
@@ -97,16 +101,16 @@ public abstract class ClientCommonPacketListenerImplMixin {
       ),
       cancellable = true
   )
-  private void setBypassStatusAction(final CallbackInfo ci) {
+  private void setBypassStatusAction(final ClientboundResourcePackPushPacket packet, final CallbackInfo ci) {
     if (this.serverData != null && this.serverData.getResourcePackStatus() == ModConstants.getBypassStatus()) {
-      bypassPack();
+      bypassPack(packet.id());
       ci.cancel();
     }
   }
 
   @Unique
-  private void bypassPack() {
-    send(ServerboundResourcePackPacket.Action.ACCEPTED);
-    packApplicationCallback(CompletableFuture.runAsync(() -> { }, DELAYED_EXECUTOR));
+  private void bypassPack(final UUID id) {
+    this.connection.send(new ServerboundResourcePackPacket(id, ServerboundResourcePackPacket.Action.ACCEPTED));
+    DELAYED_EXECUTOR.execute(() -> this.connection.send(new ServerboundResourcePackPacket(id, ServerboundResourcePackPacket.Action.SUCCESSFULLY_LOADED)));
   }
 }
