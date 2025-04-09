@@ -1,13 +1,13 @@
 import net.fabricmc.loom.task.RemapJarTask
 
 plugins {
-  id("fabric-loom") version "1.4-SNAPSHOT"
+  id("fabric-loom") version "1.10-SNAPSHOT"
   id("com.github.hierynomus.license-base") version "0.16.1"
 }
 
 java {
   toolchain {
-    languageVersion.set(JavaLanguageVersion.of(17))
+    languageVersion = JavaLanguageVersion.of(21)
   }
 }
 
@@ -29,12 +29,12 @@ license {
 
 tasks {
   check {
-    finalizedBy(licenseMain)
+    dependsOn(licenseMain)
   }
 
   withType<JavaCompile> {
     options.encoding = "UTF-8"
-    options.release.set(17)
+    options.release = 21
   }
 
   withType<ProcessResources> {
@@ -47,7 +47,7 @@ tasks {
   }
 
   withType<RemapJarTask> {
-    archiveBaseName.set("EpicForcedResourcePackBypassMod")
+    archiveBaseName = "EpicForcedResourcePackBypassMod"
   }
 
   withType<Jar> {
