@@ -51,10 +51,11 @@ tasks {
   }
 
   withType<Jar> {
-    inputs.property("project.group", project.group)
-    inputs.property("project.name", project.name)
-    inputs.file("COPYING")
-    inputs.file("COPYING.LESSER")
+    inputs.files("COPYING", "COPYING.LESSER")
+    inputs.properties(
+      "project.group" to project.group,
+      "project.name" to project.name
+    )
 
     manifestContentCharset = "UTF-8"
     metaInf {

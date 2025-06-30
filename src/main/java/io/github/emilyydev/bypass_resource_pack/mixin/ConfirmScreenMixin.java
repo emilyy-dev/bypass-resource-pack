@@ -21,6 +21,7 @@ package io.github.emilyydev.bypass_resource_pack.mixin;
 import io.github.emilyydev.bypass_resource_pack.BypassableConfirmScreen;
 import io.github.emilyydev.bypass_resource_pack.ModConstants;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -34,26 +35,24 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ConfirmScreen.class)
 public abstract class ConfirmScreenMixin extends Screen implements BypassableConfirmScreen {
 
+  @Shadow protected LinearLayout layout;
   @Unique private Runnable bypassAction = null;
 
   protected ConfirmScreenMixin(final Component title) {
     super(title);
   }
 
-  @Shadow protected abstract void addExitButton(Button button);
-
   @Inject(
-      method = "addButtons",
-      at = @At("TAIL")
+      method = "init",
+      at = @At(
+          value = "INVOKE",
+          target = "Lnet/minecraft/client/gui/screens/ConfirmScreen;addButtons(Lnet/minecraft/client/gui/layouts/LinearLayout;)V",
+          shift = At.Shift.AFTER
+      )
   )
-  protected void addBypassButton(final int y, final CallbackInfo ci) {
+  protected void addBypassButton(final CallbackInfo ci) {
     if (this.bypassAction != null) {
-      addExitButton(
-          Button.builder(ModConstants.BYPASS_TEXT, $ -> this.bypassAction.run())
-              .pos(this.width / 2 - 75, y + 20 + 5)
-              .size(150, 20)
-              .build()
-      );
+      this.layout.addChild(Button.builder(ModConstants.BYPASS_TEXT, $ -> this.bypassAction.run()).build());
     }
   }
 
