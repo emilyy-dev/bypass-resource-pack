@@ -18,6 +18,7 @@
 
 package io.github.emilyydev.bypass_resource_pack.mixin;
 
+import net.minecraft.client.gui.screens.Screen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
@@ -28,4 +29,7 @@ public interface PackConfirmScreenMixin {
 
   @Accessor
   List<? extends PendingRequestMixin> getRequests();
+
+  @Accessor
+  Screen getParentScreen();
 }

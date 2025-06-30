@@ -18,7 +18,6 @@
 
 package io.github.emilyydev.bypass_resource_pack.mixin;
 
-import com.google.common.collect.Iterables;
 import io.github.emilyydev.bypass_resource_pack.BypassableConfirmScreen;
 import io.github.emilyydev.bypass_resource_pack.ModConstants;
 import net.minecraft.client.Minecraft;
@@ -27,8 +26,10 @@ import net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerList;
 import net.minecraft.network.Connection;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.ClientboundResourcePackPushPacket;
 import net.minecraft.network.protocol.common.ServerboundResourcePackPacket;
+import net.minecraft.network.protocol.common.ServerboundResourcePackPacket.Action;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -36,9 +37,11 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.net.URL;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -67,28 +70,25 @@ public abstract class ClientCommonPacketListenerImplMixin {
   @Shadow @Final protected ServerData serverData;
   @Shadow @Final protected Connection connection;
 
-  @ModifyArg(
-      method = "handleResourcePackPush",
-      at = @At(
-          value = "INVOKE",
-          target = "Lnet/minecraft/client/Minecraft;setScreen(Lnet/minecraft/client/gui/screens/Screen;)V"
-      ),
-      index = 0
+  @Inject(
+      method = "addOrUpdatePackPrompt",
+      at = @At("TAIL")
   )
-  private Screen setScreenBypassAction(final Screen screen) {
-    final UUID packId = Iterables.getLast(((PackConfirmScreenMixin) screen).getRequests()).callId();
+  private void setScreenBypassAction(
+      final UUID id, final URL url, final String hash, final boolean forced, final Component caption,
+      final CallbackInfoReturnable<Screen> cir
+  ) {
+    final Screen screen = cir.getReturnValue();
     ((BypassableConfirmScreen) screen).bypassResourcePack$setBypassAction(() -> {
-      this.minecraft.setScreen(null);
+      this.minecraft.setScreen(((PackConfirmScreenMixin) screen).getParentScreen());
       if (this.serverData != null) {
         this.serverData.setResourcePackStatus(ModConstants.getBypassStatus());
         this.minecraft.getDownloadedPackSource().allowServerPacks();
         ServerList.saveSingleServer(this.serverData);
       }
 
-      bypassPack(packId);
+      bypassPack(((PackConfirmScreenMixin) screen).getRequests().stream().map(PendingRequestMixin::callId).toList());
     });
-
-    return screen;
   }
 
   @Inject(
@@ -103,14 +103,16 @@ public abstract class ClientCommonPacketListenerImplMixin {
   )
   private void setBypassStatusAction(final ClientboundResourcePackPushPacket packet, final CallbackInfo ci) {
     if (this.serverData != null && this.serverData.getResourcePackStatus() == ModConstants.getBypassStatus()) {
-      bypassPack(packet.id());
+      bypassPack(List.of(packet.id()));
       ci.cancel();
     }
   }
 
   @Unique
-  private void bypassPack(final UUID id) {
-    this.connection.send(new ServerboundResourcePackPacket(id, ServerboundResourcePackPacket.Action.ACCEPTED));
-    DELAYED_EXECUTOR.execute(() -> this.connection.send(new ServerboundResourcePackPacket(id, ServerboundResourcePackPacket.Action.SUCCESSFULLY_LOADED)));
+  private void bypassPack(final List<UUID> ids) {
+    ids.forEach(id -> this.connection.send(new ServerboundResourcePackPacket(id, Action.ACCEPTED)));
+    DELAYED_EXECUTOR.execute(() ->
+        ids.forEach(id -> this.connection.send(new ServerboundResourcePackPacket(id, Action.SUCCESSFULLY_LOADED)))
+    );
   }
 }

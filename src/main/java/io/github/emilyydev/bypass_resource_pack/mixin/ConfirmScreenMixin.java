@@ -58,6 +58,8 @@ public abstract class ConfirmScreenMixin extends Screen implements BypassableCon
 
   @Override
   public void bypassResourcePack$setBypassAction(final Runnable bypassAction) {
-    this.bypassAction = bypassAction;
+    if (this.bypassAction == null) {
+      this.bypassAction = bypassAction;
+    }
   }
 }
