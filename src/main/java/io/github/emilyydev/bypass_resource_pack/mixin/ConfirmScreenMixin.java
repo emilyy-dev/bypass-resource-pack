@@ -1,6 +1,6 @@
 //
 // Bypass Resource Pack - Fabric mod to reject and bypass forced resource packs
-// Copyright (C) 2025  emilyy-dev
+// Copyright (C) 2026  emilyy-dev
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +25,7 @@ import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -35,7 +36,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ConfirmScreen.class)
 public abstract class ConfirmScreenMixin extends Screen implements BypassableConfirmScreen {
 
-  @Shadow protected LinearLayout layout;
+  @Shadow @Final protected LinearLayout layout;
   @Unique private Runnable bypassAction = null;
 
   protected ConfirmScreenMixin(final Component title) {
@@ -52,7 +53,7 @@ public abstract class ConfirmScreenMixin extends Screen implements BypassableCon
   )
   protected void addBypassButton(final CallbackInfo ci) {
     if (this.bypassAction != null) {
-      this.layout.addChild(Button.builder(ModConstants.BYPASS_TEXT, $ -> this.bypassAction.run()).build());
+      this.layout.addChild(Button.builder(ModConstants.BYPASS_TEXT, _ -> this.bypassAction.run()).build());
     }
   }
 

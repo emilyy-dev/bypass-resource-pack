@@ -1,6 +1,6 @@
 //
 // Bypass Resource Pack - Fabric mod to reject and bypass forced resource packs
-// Copyright (C) 2025  emilyy-dev
+// Copyright (C) 2026  emilyy-dev
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,7 @@ import io.github.emilyydev.bypass_resource_pack.ModConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl;
+import net.minecraft.client.multiplayer.CommonListenerCookie;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerList;
 import net.minecraft.network.Connection;
@@ -50,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 @Mixin(ClientCommonPacketListenerImpl.class)
 public abstract class ClientCommonPacketListenerImplMixin {
 
-  // TODO: make proper config
+  // TODO: rid this?
   @Unique private static final long SPOOFED_ACCEPT_DELAY_SECONDS =
       Long.parseLong(
           System.getProperty(
@@ -59,23 +60,35 @@ public abstract class ClientCommonPacketListenerImplMixin {
           )
       );
 
-  // Some cheeky sneaky servers will check the time between Action.ACCEPTED -> Action.SUCCESSFULLY_LOADED
-  //  to ensure the client "actually loaded" the resource pack
-  @Unique private static final Executor DELAYED_EXECUTOR =
-      SPOOFED_ACCEPT_DELAY_SECONDS > 0L ?
-          CompletableFuture.delayedExecutor(SPOOFED_ACCEPT_DELAY_SECONDS, TimeUnit.SECONDS) :
-          Runnable::run;
-
   @Shadow @Final protected Minecraft minecraft;
   @Shadow @Final protected ServerData serverData;
   @Shadow @Final protected Connection connection;
+
+  // TODO: rid this?
+  @Unique private Executor delayedExecutor;
+
+  @Inject(
+      method = "<init>",
+      at = @At("TAIL")
+  )
+  private void afterInit(
+      final Minecraft minecraft,
+      final Connection connection,
+      final CommonListenerCookie cookie,
+      final CallbackInfo ci
+  ) {
+    this.delayedExecutor =
+        SPOOFED_ACCEPT_DELAY_SECONDS > 0L ?
+            CompletableFuture.delayedExecutor(SPOOFED_ACCEPT_DELAY_SECONDS, TimeUnit.SECONDS, minecraft) :
+            Runnable::run;
+  }
 
   @Inject(
       method = "addOrUpdatePackPrompt",
       at = @At("TAIL")
   )
   private void setScreenBypassAction(
-      final UUID id, final URL url, final String hash, final boolean forced, final Component caption,
+      final UUID packId, final URL url, final String hash, final boolean required, final Component prompt,
       final CallbackInfoReturnable<Screen> cir
   ) {
     final Screen screen = cir.getReturnValue();
@@ -111,7 +124,7 @@ public abstract class ClientCommonPacketListenerImplMixin {
   @Unique
   private void bypassPack(final List<UUID> ids) {
     ids.forEach(id -> this.connection.send(new ServerboundResourcePackPacket(id, Action.ACCEPTED)));
-    DELAYED_EXECUTOR.execute(() ->
+    this.delayedExecutor.execute(() ->
         ids.forEach(id -> this.connection.send(new ServerboundResourcePackPacket(id, Action.SUCCESSFULLY_LOADED)))
     );
   }

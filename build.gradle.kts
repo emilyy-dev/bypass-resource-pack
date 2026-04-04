@@ -1,56 +1,39 @@
-import net.fabricmc.loom.task.RemapJarTask
-
 plugins {
-  id("fabric-loom") version "1.10-SNAPSHOT"
-  id("com.github.hierynomus.license-base") version "0.16.1"
+  id("net.fabricmc.fabric-loom") version "1.15-SNAPSHOT"
 }
 
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(21)
+    languageVersion = JavaLanguageVersion.of(25)
   }
 }
 
-val minecraftVersion: String by project
-val loaderVersion: String by project
+val minecraftVersion: Provider<String> = providers.gradleProperty("minecraftVersion")
+val loaderVersion: Provider<String> = providers.gradleProperty("loaderVersion")
 
 dependencies {
-  minecraft("com.mojang", "minecraft", minecraftVersion)
-  mappings(loom.officialMojangMappings())
-  modImplementation("net.fabricmc", "fabric-loader", loaderVersion)
-}
-
-license {
-  header = file("header.txt")
-  encoding = "UTF-8"
-  mapping("java", "DOUBLESLASH_STYLE")
-  include("**/*.java")
+  minecraft(minecraftVersion.map { "com.mojang:minecraft:$it" })
+  implementation(loaderVersion.map { "net.fabricmc:fabric-loader:$it" })
 }
 
 tasks {
-  check {
-    dependsOn(licenseMain)
-  }
-
   withType<JavaCompile> {
     options.encoding = "UTF-8"
-    options.release = 21
+    options.compilerArgs = listOf("-Xlint:all")
   }
 
   withType<ProcessResources> {
-    inputs.property("project.version", project.version)
+    val version = project.version
+    inputs.property("project.version", version)
 
     filteringCharset = "UTF-8"
     filesMatching("fabric.mod.json") {
-      expand("version" to project.version)
+      expand("version" to version)
     }
   }
 
-  withType<RemapJarTask> {
-    archiveBaseName = "EpicForcedResourcePackBypassMod"
-  }
-
   withType<Jar> {
+    archiveBaseName = "EpicForcedResourcePackBypassMod"
     inputs.files("COPYING", "COPYING.LESSER")
     inputs.properties(
       "project.group" to project.group,
@@ -59,10 +42,7 @@ tasks {
 
     manifestContentCharset = "UTF-8"
     metaInf {
-      into("${project.group}/${project.name}") {
-        from("COPYING")
-        from("COPYING.LESSER")
-      }
+      into("${project.group}/${project.name}").from("COPYING", "COPYING.LESSER")
     }
   }
 }

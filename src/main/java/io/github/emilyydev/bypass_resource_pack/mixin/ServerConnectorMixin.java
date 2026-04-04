@@ -1,6 +1,6 @@
 //
 // Bypass Resource Pack - Fabric mod to reject and bypass forced resource packs
-// Copyright (C) 2025  emilyy-dev
+// Copyright (C) 2026  emilyy-dev
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
@@ -35,10 +35,10 @@ public class ServerConnectorMixin {
       cancellable = true
   )
   private static void guardSwitchCase(
-      final ServerData.ServerPackStatus status,
+      final ServerData.ServerPackStatus resourcePackStatus,
       final CallbackInfoReturnable<ServerPackManager.PackPromptStatus> cir
   ) {
-    if (status == ModConstants.getBypassStatus()) {
+    if (resourcePackStatus == ModConstants.getBypassStatus()) {
       cir.setReturnValue(ServerPackManager.PackPromptStatus.ALLOWED);
     }
   }
