@@ -1,5 +1,5 @@
 plugins {
-  id("net.fabricmc.fabric-loom") version "1.15-SNAPSHOT"
+  id("net.fabricmc.fabric-loom") version "1.17-SNAPSHOT"
 }
 
 java {
@@ -42,7 +42,9 @@ tasks {
 
     manifestContentCharset = "UTF-8"
     metaInf {
-      into("${project.group}/${project.name}").from("COPYING", "COPYING.LESSER")
+      into("${project.group}/${project.name}") {
+        from("COPYING", "COPYING.LESSER")
+      }
     }
   }
 }

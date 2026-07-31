@@ -93,7 +93,7 @@ public abstract class ClientCommonPacketListenerImplMixin {
   ) {
     final Screen screen = cir.getReturnValue();
     ((BypassableConfirmScreen) screen).bypassResourcePack$setBypassAction(() -> {
-      this.minecraft.setScreen(((PackConfirmScreenMixin) screen).getParentScreen());
+      this.minecraft.gui.setScreen(((PackConfirmScreenMixin) screen).getParentScreen());
       if (this.serverData != null) {
         this.serverData.setResourcePackStatus(ModConstants.getBypassStatus());
         this.minecraft.getDownloadedPackSource().allowServerPacks();
